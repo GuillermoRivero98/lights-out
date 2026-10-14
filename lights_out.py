@@ -24,6 +24,10 @@ from itertools import product
 import numpy as np
 
 
+# Desplazamientos (fila, columna) de una luz y sus cuatro vecinas ortogonales.
+VECINDARIO = ((0, 0), (-1, 0), (1, 0), (0, -1), (0, 1))
+
+
 # ---------------------------------------------------------------------------
 # Indexación
 # ---------------------------------------------------------------------------
@@ -43,6 +47,28 @@ def posicion_a_indice(fila: int, columna: int, n: int) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Tableros de ejemplo de la consigna
+# ---------------------------------------------------------------------------
+
+# Tablero 3 x 3 resuelto en la consigna (solución: presionar a22 y a33).
+TABLERO_CONSIGNA_3X3 = np.array([[0, 1, 0],
+                                 [1, 1, 0],
+                                 [0, 0, 1]], dtype=np.uint8)
+
+# Tablero 5 x 5 de la consigna, antes y después de presionar a43.
+TABLERO_CONSIGNA_5X5 = np.array([[0, 0, 1, 1, 1],
+                                 [0, 1, 1, 1, 0],
+                                 [1, 0, 0, 1, 1],
+                                 [1, 1, 0, 0, 1],
+                                 [0, 1, 1, 1, 0]], dtype=np.uint8)
+TABLERO_CONSIGNA_5X5_TRAS_A43 = np.array([[0, 0, 1, 1, 1],
+                                          [0, 1, 1, 1, 0],
+                                          [1, 0, 1, 1, 1],
+                                          [1, 0, 1, 1, 1],
+                                          [0, 1, 0, 1, 0]], dtype=np.uint8)
+
+
+# ---------------------------------------------------------------------------
 # Simulación del juego (independiente del álgebra, sirve para verificar)
 # ---------------------------------------------------------------------------
 
@@ -51,7 +77,7 @@ def presionar(tablero: np.ndarray, fila: int, columna: int) -> np.ndarray:
     con índices base 0. Cambia de estado la luz y sus vecinas ortogonales."""
     nuevo = tablero.copy()
     n = nuevo.shape[0]
-    for df, dc in ((0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)):
+    for df, dc in VECINDARIO:
         f, c = fila + df, columna + dc
         if 0 <= f < n and 0 <= c < n:
             nuevo[f, c] ^= 1
@@ -88,7 +114,7 @@ def matriz_del_sistema(n: int) -> np.ndarray:
     A = np.zeros((n * n, n * n), dtype=np.uint8)
     for k in range(n * n):
         fila, columna = divmod(k, n)
-        for df, dc in ((0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)):
+        for df, dc in VECINDARIO:
             f, c = fila + df, columna + dc
             if 0 <= f < n and 0 <= c < n:
                 A[k, f * n + c] = 1
@@ -110,7 +136,7 @@ class Escalerizacion:
     """Resultado de escalerizar la matriz ampliada [A | b]."""
     ampliada: np.ndarray      # matriz escalerizada reducida [R | c]
     pivotes: list[int]        # columna del pivote de cada fila no nula
-    intercambios: int         # cantidad de intercambios de filas realizados
+    correcciones: int         # veces que el pivote era 0 y se le sumó otra fila
 
     @property
     def rango(self) -> int:
@@ -124,21 +150,25 @@ class Escalerizacion:
     @property
     def variables_libres(self) -> list[int]:
         total = self.ampliada.shape[1] - 1
-        return [j for j in range(total) if j not in set(self.pivotes)]
+        con_pivote = set(self.pivotes)
+        return [j for j in range(total) if j not in con_pivote]
 
 
 def escalerizar_gf2(A: np.ndarray, b: np.ndarray) -> Escalerizacion:
     """Escalerización de Gauss-Jordan de [A | b] con suma binaria.
 
     En {0, 1} un pivote no nulo vale 1, por lo que no hace falta multiplicar
-    filas: la única operación de eliminación es F_i -> F_i + F_j (XOR). Además
-    se permite intercambiar filas cuando el candidato a pivote es 0; en la
-    sección de Discusión del informe se muestra que esto sí puede ocurrir.
+    filas, y la única transformación que se usa es F_i -> F_i + F_j (XOR).
+
+    Si la entrada en la posición de pivote es 0 (en el informe se muestra que
+    esto ocurre ya en el segundo paso), no se intercambian filas: a la fila
+    del pivote se le suma una fila inferior que tenga un 1 en esa columna, lo
+    que también es una transformación del tipo F_i -> F_i + F_j.
     """
     M = np.concatenate([A % 2, (b % 2)[:, None]], axis=1).astype(np.uint8)
     filas, columnas = A.shape
     pivotes: list[int] = []
-    intercambios = 0
+    correcciones = 0
     fila_actual = 0
 
     for col in range(columnas):
@@ -150,8 +180,11 @@ def escalerizar_gf2(A: np.ndarray, b: np.ndarray) -> Escalerizacion:
             continue  # no hay pivote: la variable de esta columna es libre
         p = fila_actual + int(candidatas[0])
         if p != fila_actual:
-            M[[fila_actual, p]] = M[[p, fila_actual]]
-            intercambios += 1
+            # Pivote nulo: F_pivote -> F_pivote + F_p. La fila p está debajo,
+            # así que tiene ceros en las columnas de los pivotes anteriores y
+            # no los altera.
+            M[fila_actual] ^= M[p]
+            correcciones += 1
         # F_i -> F_i + F_pivote en todas las demás filas con un 1 en la columna
         # (arriba y abajo del pivote, para obtener la forma reducida).
         con_uno = np.flatnonzero(M[:, col])
@@ -160,7 +193,7 @@ def escalerizar_gf2(A: np.ndarray, b: np.ndarray) -> Escalerizacion:
         pivotes.append(col)
         fila_actual += 1
 
-    return Escalerizacion(M, pivotes, intercambios)
+    return Escalerizacion(M, pivotes, correcciones)
 
 
 def base_del_nucleo(esc: Escalerizacion) -> list[np.ndarray]:
@@ -201,11 +234,13 @@ def resolver_lights_out(tablero, minimizar: bool = False) -> np.ndarray:
 
     Lanza SinSolucionError si el tablero no tiene solución.
     """
-    tablero = np.asarray(tablero, dtype=np.uint8)
+    tablero = np.asarray(tablero)
     if tablero.ndim != 2 or tablero.shape[0] != tablero.shape[1]:
         raise ValueError("El tablero debe ser una matriz cuadrada n x n.")
+    # Se valida antes de convertir el tipo, para no aceptar valores como 0.5.
     if not np.isin(tablero, (0, 1)).all():
         raise ValueError("El tablero solo puede contener ceros y unos.")
+    tablero = tablero.astype(np.uint8)
 
     n = tablero.shape[0]
     esc = escalerizar_gf2(matriz_del_sistema(n), vector_independiente(tablero))
@@ -236,9 +271,10 @@ def resolver_lights_out(tablero, minimizar: bool = False) -> np.ndarray:
 
 
 def primer_pivote_nulo(n: int) -> int | None:
-    """Escaleriza la matriz del sistema n x n tal como sugiere la letra, sin
-    intercambiar filas: en el paso k se usa F_k como pivote y se aplica
-    F_i -> F_i + F_k a las filas de abajo con un 1 en la columna k.
+    """Escaleriza la matriz del sistema n x n tomando siempre la fila k tal
+    como está como fila del pivote en el paso k, y aplicando F_i -> F_i + F_k
+    a las filas de abajo con un 1 en la columna k (sin ninguna corrección del
+    pivote).
 
     Devuelve el primer paso k (numerado desde 1) en el que la entrada (k, k)
     es 0, es decir, en el que el método sin pivoteo no puede continuar, o None

@@ -94,7 +94,7 @@ Facultad de Ingeniería y Tecnologías, Universidad Católica del Uruguay\par
 \addcontentsline{toc}{section}{Resumen}
 
 \noindent
-\textit{Lights Out} es un juego de un tablero de $n\times n$ luces en el que presionar una luz cambia su estado y el de sus vecinas ortogonales; el objetivo es apagarlas todas. El objetivo de este trabajo es modelar las soluciones del juego como un sistema de ecuaciones lineales sobre el conjunto $\{0,1\}$ con suma binaria, e implementar en Python un método que lo resuelva. Primero se demuestra que ninguna luz necesita presionarse más de una vez y que el orden de las pulsaciones no altera el resultado, lo que permite representar cada solución con un vector de $n^2$ componentes binarias. Luego se construye el sistema $A\mathbf{x}=\mathbf{b}$, se justifica cada ecuación del ejemplo $3\times 3$ y se implementa la escalerización de Gauss-Jordan con suma binaria. La implementación se validó con los ejemplos dados y con 20\,000 tableros aleatorios para $n$ entre 1 y 10, comprobando por simulación cada solución obtenida. Los resultados muestran que la matriz del sistema es invertible para $n\in\{1,2,3,6,7,8,10\}$, pero no para $n\in\{4,5,9\}$, en cuyo caso solo una fracción $2^{-d}$ de los tableros tiene solución, siendo $d$ la dimensión del núcleo; las frecuencias observadas coinciden con ese valor. Además, se encontró que la escalerización sin intercambio de filas se detiene en el segundo paso para todo $n\geq 2$, por lo que el intercambio es necesario. Se concluye que el modelo lineal resuelve el juego de forma exacta y permite decidir de antemano si un tablero tiene solución.
+\textit{Lights Out} es un juego que se juega en un tablero de $n\times n$ luces, en el que presionar una luz cambia su estado y el de sus vecinas ortogonales; la meta es apagarlas todas. El objetivo de este trabajo es modelar las soluciones del juego como un sistema de ecuaciones lineales sobre el conjunto $\{0,1\}$ con suma binaria, e implementar en Python un método que lo resuelva. Primero se demuestra que ninguna luz necesita presionarse más de una vez y que el orden de las pulsaciones no altera el resultado, lo que permite representar cada solución con un vector de $n^2$ componentes binarias. Luego se construye el sistema $A\mathbf{x}=\mathbf{b}$, se justifica cada ecuación del ejemplo $3\times 3$ y se implementa la escalerización de Gauss-Jordan con suma binaria. La implementación se validó con los ejemplos dados y con 20\,000 tableros aleatorios para $n$ entre 1 y 10, comprobando por simulación cada solución obtenida y comparando con una búsqueda exhaustiva en tableros pequeños. Los resultados muestran que la matriz del sistema es invertible para $n\in\{1,2,3,6,7,8,10\}$, pero no para $n\in\{4,5,9\}$, en cuyo caso solo una fracción $2^{-d}$ de los tableros tiene solución, siendo $d$ la dimensión del núcleo; las frecuencias observadas coinciden con ese valor. Además, se encontró que, si se toma cada fila tal como está, la entrada en la posición de pivote se anula en el segundo paso para todo $n\geq 2$; el problema se resuelve sumando a esa fila otra inferior, sin salir de la transformación $F_i\to F_i+F_j$. Se concluye que el modelo lineal resuelve el juego de forma exacta y permite decidir de antemano si un tablero tiene solución.
 
 \vspace{0.5em}
 \noindent\textit{Palabras clave:} Lights Out, sistemas lineales, aritmética binaria, escalerización gaussiana, núcleo.
@@ -127,7 +127,7 @@ El informe se organiza de la siguiente manera. En la Sección~\ref{sec:marco} se
 
 \subsection{Reglas del juego y representación del tablero}
 
-El tablero se representa con una matriz $T=(a_{ij})$ de tamaño $n\times n$, donde $a_{ij}=1$ si la luz de la fila $i$ y la columna $j$ está prendida y $a_{ij}=0$ si está apagada (Universidad Católica del Uruguay, s.f.). Dos luces son \textit{adyacentes} si comparten un lado, es decir, si están en la misma fila y en columnas consecutivas, o en la misma columna y en filas consecutivas. Para cada luz $p$ se define su \textit{vecindario} $\V(p)$ como el conjunto formado por $p$ y sus luces adyacentes. Una luz en el interior del tablero tiene un vecindario de cinco luces, una luz en un borde tiene cuatro y una luz en una esquina tiene tres.
+El tablero se representa con una matriz $T=(a_{ij})$ de tamaño $n\times n$, donde $a_{ij}=1$ si la luz de la fila $i$ y la columna $j$ está prendida y $a_{ij}=0$ si está apagada (Universidad Católica del Uruguay, s.f.). Dos luces son \textit{adyacentes} si comparten un lado, es decir, si están en la misma fila y en columnas consecutivas, o en la misma columna y en filas consecutivas. Para cada luz $p$ se define su \textit{vecindario} $\V(p)$ como el conjunto formado por $p$ y sus luces adyacentes. Si $n\geq 3$, una luz en el interior del tablero tiene un vecindario de cinco luces, una luz en un borde (que no sea esquina) tiene cuatro y una luz en una esquina tiene tres.
 
 La regla del juego es que presionar la luz $p$ cambia el estado de todas las luces de $\V(p)$ y deja las demás sin cambios. Como la relación de adyacencia es simétrica, $q\in\V(p)$ si y solo si $p\in\V(q)$: presionar $p$ afecta a $q$ exactamente cuando presionar $q$ afecta a $p$.
 
@@ -139,17 +139,21 @@ Se trabaja en el conjunto $\F=\{0,1\}$ con la suma y el producto definidos por
 \]
 Estas operaciones corresponden a calcular el resto de la división entre 2 del resultado usual, y $\F$ con ellas es un cuerpo: la suma y el producto son conmutativos y asociativos, el producto es distributivo respecto de la suma, el 0 y el 1 son neutros, y el único elemento no nulo, el 1, es su propio inverso multiplicativo (Lidl y Niederreiter, 1997). Dos propiedades se usan de forma continua en este trabajo. La primera es que todo elemento es su propio opuesto, $x+x=0$, de modo que restar es lo mismo que sumar. La segunda es que cambiar el estado de una luz equivale a sumarle 1: si estaba apagada pasa a $0+1=1$ y si estaba prendida pasa a $1+1=0$.
 
-Como $\F$ es un cuerpo, los resultados de álgebra lineal que se demuestran usando solo las propiedades de cuerpo (escalerización, rango, núcleo, teorema de las dimensiones) siguen valiendo al reemplazar los números reales por $\F$ (Lay et al., 2016). En lo que sigue, $\F^m$ denota el conjunto de vectores de $m$ componentes en $\F$.
+Como $\F$ es un cuerpo, los resultados de álgebra lineal que se demuestran usando solo las propiedades de cuerpo (escalerización, rango, núcleo, teorema de las dimensiones) siguen valiendo al reemplazar los números reales por $\F$, ya que en esos textos se desarrollan sobre un cuerpo cualquiera (Hoffman y Kunze, 1971). En lo que sigue, $\F^m$ denota el conjunto de vectores de $m$ componentes en $\F$.
 
 \subsection{Sistemas lineales, escalerización y núcleo}
 
 Un sistema de $m$ ecuaciones lineales con $m$ incógnitas se escribe como $A\mathbf{x}=\mathbf{b}$, con $A$ una matriz $m\times m$ y $\mathbf{b}\in\F^m$. La \textit{escalerización gaussiana} transforma la matriz ampliada $[A\,|\,\mathbf{b}]$ mediante transformaciones elementales (intercambiar dos filas, multiplicar una fila por un escalar no nulo y sumar a una fila un múltiplo de otra) hasta obtener una forma escalerizada, sin cambiar el conjunto de soluciones (Lay et al., 2016). Si además se anulan las entradas por encima de cada pivote, se obtiene la forma escalerizada reducida (método de Gauss-Jordan).
 
-En $\F$ la escalerización se simplifica: el único escalar no nulo es el 1, de modo que multiplicar filas no tiene efecto, y sumar a $F_i$ un múltiplo no nulo de $F_j$ es simplemente $F_i\to F_i+F_j$. Por eso las únicas transformaciones necesarias son el intercambio de filas y la suma de filas. Cuando la entrada en la posición de pivote es 0, hay que intercambiar la fila con alguna fila inferior que tenga un 1 en esa columna; si ninguna lo tiene, la columna no tiene pivote y su incógnita es \textit{libre}.
+En $\F$ la escalerización se simplifica: el único escalar no nulo es el 1, de modo que multiplicar filas no tiene efecto, y sumar a $F_i$ un múltiplo no nulo de $F_j$ es simplemente $F_i\to F_i+F_j$. Cuando la entrada en la posición de pivote es 0, hay que conseguir un 1 a partir de alguna fila inferior que tenga un 1 en esa columna. Esto puede hacerse intercambiando las filas, pero también sumando la fila inferior a la del pivote, que es otra transformación del tipo $F_i\to F_i+F_j$; por eso, en $\F$, esa suma de filas alcanza para escalerizar cualquier matriz. Si ninguna fila inferior tiene un 1 en la columna, esta no tiene pivote y su incógnita es \textit{libre}.
 
-El \textit{rango} $r$ de $A$ es la cantidad de pivotes. El sistema es compatible si y solo si la escalerización no produce una fila de la forma $0=1$ (teorema de Rouché-Frobenius). El \textit{núcleo} de $A$ es $N(A)=\{\mathbf{x}\in\F^m : A\mathbf{x}=\mathbf{0}\}$, y por el teorema de las dimensiones $\dim N(A)=m-r$. Si $\mathbf{x}_p$ es una solución del sistema, el conjunto de todas sus soluciones es $\{\mathbf{x}_p+\mathbf{z} : \mathbf{z}\in N(A)\}$ (Lay et al., 2016).
+El \textit{rango} $r$ de $A$ es la cantidad de pivotes. El sistema es compatible si y solo si la escalerización no produce una fila de la forma $0=1$ (teorema de Rouché-Frobenius). El \textit{núcleo} de $A$ es $N(A)=\{\mathbf{x}\in\F^m : A\mathbf{x}=\mathbf{0}\}$, y por el teorema de las dimensiones $\dim N(A)=m-r$. Si $\mathbf{x}_p$ es una solución del sistema, el conjunto de todas sus soluciones es $\{\mathbf{x}_p+\mathbf{z} : \mathbf{z}\in N(A)\}$ (Hoffman y Kunze, 1971; Lay et al., 2016).
 
 A diferencia de lo que ocurre con los números reales, en $\F$ los conjuntos son finitos. Un subespacio de dimensión $d$ tiene exactamente $2^d$ elementos, porque cada vector se escribe de forma única como combinación de $d$ vectores de una base con coeficientes en $\{0,1\}$. En consecuencia, un sistema compatible tiene exactamente $2^{\dim N(A)}$ soluciones, y la imagen de $A$, que es el conjunto de vectores $\mathbf{b}$ para los que el sistema es compatible, tiene $2^{r}$ elementos de los $2^m$ posibles.
+
+\subsection{Antecedentes}
+
+El enfoque lineal del juego es conocido. Anderson y Feil (1998) plantean el mismo sistema para el tablero de $5\times 5$, muestran que su matriz tiene rango 23 y caracterizan los tableros con solución mediante los vectores del núcleo. Sutner (1989) estudia el mismo problema desde la teoría de los autómatas celulares lineales y demuestra que el tablero con todas las luces prendidas siempre puede apagarse, sea cual sea su tamaño. Este trabajo parte de esas ideas y las aplica de forma sistemática a tableros de $n$ entre 1 y 10, con una implementación propia de la escalerización.
 
 % ---------------------------------------------------------------------------
 \section{Metodología}\label{sec:metodologia}
@@ -169,7 +173,7 @@ a_q^{\text{final}} \;=\; a_q + \sum_{p\,:\,q\in\V(p)} c_p \pmod 2 .
 \end{proposicion}
 
 \begin{proof}
-Cada pulsación de una luz $p$ con $q\in\V(p)$ suma 1 al estado de $q$, y las pulsaciones de luces $p$ con $q\notin\V(p)$ no lo modifican. Esto vale cualquiera sea el estado del tablero en el momento de presionar, porque la regla del juego no depende de los estados actuales. Por lo tanto, el estado final de $q$ es su estado inicial más la cantidad total de pulsaciones que lo afectan, calculada en $\F$, es decir, módulo 2.
+Cada pulsación de una luz $p$ con $q\in\V(p)$ suma 1 al estado de $q$, y las pulsaciones de luces $p$ con $q\notin\V(p)$ no lo modifican. Esto vale sea cual sea el estado del tablero en el momento de presionar, porque la regla del juego no depende de los estados actuales. Por lo tanto, el estado final de $q$ es su estado inicial más la cantidad total de pulsaciones que lo afectan, calculada en $\F$, es decir, módulo 2.
 \end{proof}
 
 De la Proposición~\ref{prop:efecto} se deducen las respuestas a las dos primeras preguntas planteadas en la consigna.
@@ -179,7 +183,7 @@ Si una jugada gana el juego, la jugada que presiona una sola vez cada luz con $c
 \end{proposicion}
 
 \begin{proof}
-En la Ecuación~\eqref{eq:efecto} solo interviene el resto de dividir cada $c_p$ entre 2. Al reemplazar cada $c_p$ por $c_p \bmod 2\in\{0,1\}$ el estado final de todas las luces no cambia, y por lo tanto sigue siendo el tablero apagado. En términos del juego: presionar dos veces una misma luz cambia dos veces el estado de cada luz de su vecindario y deja el tablero como estaba, de modo que las pulsaciones pueden eliminarse de a pares.
+En la Ecuación~\eqref{eq:efecto} solo interviene el resto de dividir cada $c_p$ entre 2. Al reemplazar cada $c_p$ por $c_p \bmod 2\in\{0,1\}$ el estado final de todas las luces no cambia, y por lo tanto sigue siendo el tablero apagado. En términos del juego: presionar dos veces una misma luz cambia dos veces el estado de cada luz de su vecindario y deja el tablero como estaba, de modo que las pulsaciones pueden eliminarse por pares.
 \end{proof}
 
 \begin{proposicion}[El orden de las pulsaciones no influye]\label{prop:orden}
@@ -194,7 +198,7 @@ Por ejemplo, en el tablero $3\times 3$ de la consigna, presionar primero $a_{33}
 
 Las Proposiciones~\ref{prop:repeticion} y~\ref{prop:orden} justifican el modelo propuesto en la consigna. Como el orden no importa, una solución queda determinada por las cantidades $c_p$; como basta presionar cada luz a lo sumo una vez, se puede suponer $c_p\in\{0,1\}$. Una solución es entonces un \textit{conjunto} de luces a presionar, que se representa con un vector $\mathbf{x}=(x_1,\ldots,x_{n^2})\in\F^{n^2}$.
 
-Falta ver que la regla que asigna cada componente $x_i$ a una luz es una correspondencia biunívoca entre los índices $\{1,\ldots,n^2\}$ y las posiciones del tablero. Dado $i$, el algoritmo de la división entera da un único par $(q,r)$ con $i-1=nq+r$ y $0\leq r<n$. Como $0\leq i-1\leq n^2-1$, se cumple $0\leq q\leq n-1$, por lo que $(q+1,r+1)$ es una posición válida. Recíprocamente, la luz $a_{fc}$ corresponde al índice $i=n(f-1)+c$, de modo que la correspondencia es invertible. En otras palabras, las luces se numeran recorriendo el tablero por filas: $x_1,\ldots,x_n$ son las luces de la primera fila, $x_{n+1},\ldots,x_{2n}$ las de la segunda, y así sucesivamente. Por lo tanto, cada vector de $\F^{n^2}$ representa exactamente un conjunto de pulsaciones y cada conjunto de pulsaciones está representado por exactamente un vector, lo que hace correcto el modelo.
+Resta demostrar que la regla que asigna cada componente $x_i$ a una luz es una correspondencia biunívoca entre los índices $\{1,\ldots,n^2\}$ y las posiciones del tablero. Dado $i$, el algoritmo de la división entera da un único par $(q,r)$ con $i-1=nq+r$ y $0\leq r<n$. Como $0\leq i-1\leq n^2-1$, se cumple $0\leq q\leq n-1$, por lo que $(q+1,r+1)$ es una posición válida. Recíprocamente, la luz $a_{fc}$ corresponde al índice $i=n(f-1)+c$, de modo que la correspondencia es invertible. En otras palabras, las luces se numeran recorriendo el tablero por filas: $x_1,\ldots,x_n$ son las luces de la primera fila, $x_{n+1},\ldots,x_{2n}$ las de la segunda, y así sucesivamente. Por lo tanto, cada vector de $\F^{n^2}$ representa exactamente un conjunto de pulsaciones y cada conjunto de pulsaciones está representado por exactamente un vector, lo que hace correcto el modelo.
 
 \subsection{Construcción del sistema de ecuaciones}\label{sec:sistema}
 
@@ -212,7 +216,7 @@ La columna $j$ de $A$ indica qué luces cambian al presionar $p_j$, y la fila $i
 
 Cabe aclarar que en la consigna, al describir la regla de asociación de las ecuaciones, se escribe la luz como $a_{(q-1)(r-1)}$; se entiende que se trata de una errata y que la ecuación $i$ corresponde, igual que la incógnita $x_i$, a la luz $a_{(q+1)(r+1)}$, que es la que se usa en el ejemplo resuelto de la propia consigna.
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.48\textwidth]{generado/figura_matriz_4x4.pdf}
   \caption{Matriz $A$ del sistema para un tablero de $4\times 4$. Cada casilla azul es un 1: la fila $i$ es la ecuación de la luz $i$ y la columna $j$ es la incógnita de la luz $j$, con las luces numeradas por filas. La diagonal principal corresponde a la luz presionada, las diagonales vecinas a sus vecinas de la misma fila y las diagonales a distancia 4 a sus vecinas de la fila de arriba y de abajo.}
@@ -226,7 +230,7 @@ T=\begin{pmatrix}0&1&0\\1&1&0\\0&0&1\end{pmatrix},\qquad
 \]
 donde a la derecha se indica la incógnita que corresponde a cada posición. La Tabla~\ref{tab:ecuaciones} detalla la construcción de cada una de las nueve ecuaciones. La luz $a_{11}$ es una esquina, por lo que solo la afectan ella misma y sus dos vecinas $a_{12}$ y $a_{21}$; como está apagada, la ecuación es $x_1+x_2+x_4=0$. Del mismo modo, $a_{12}$ está en el borde superior y la afectan $a_{11}$, $a_{12}$, $a_{13}$ y $a_{22}$; como está prendida, debe recibir una cantidad impar de cambios y la ecuación es $x_1+x_2+x_3+x_5=1$. La luz central $a_{22}$ tiene cuatro vecinas y por eso su ecuación es la única con cinco incógnitas. El resto de las ecuaciones se obtiene con el mismo razonamiento.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption{Construcción de las ecuaciones del sistema para el tablero $3\times 3$ de la consigna}
 \label{tab:ecuaciones}
@@ -255,9 +259,9 @@ Ec. & Luz & Ubicación & Luces que la afectan & Estado & Ecuación \\
 
 \subsection{Algoritmo de resolución}\label{sec:algoritmo}
 
-Para resolver el sistema se usa la escalerización de Gauss-Jordan sobre la matriz ampliada $[A\,|\,\mathbf{b}]$ con la suma de $\F$. La consigna indica que no es necesario el pivoteo, es decir, que en cada paso la entrada en la posición de pivote ya vale 1. Al implementar el método se comprobó que esto no ocurre (ver Sección~\ref{sec:res_pivoteo}), por lo que el algoritmo incluye el intercambio de filas. El procedimiento se resume en el Algoritmo~\ref{alg:gauss}.
+Para resolver el sistema se usa la escalerización de Gauss-Jordan sobre la matriz ampliada $[A\,|\,\mathbf{b}]$ con la suma de $\F$. La consigna indica que no es necesario el pivoteo y que la única transformación a aplicar es $F_i\to F_i+F_j$. Para no suponer que la entrada en la posición de pivote vale siempre 1, el algoritmo comprueba ese valor y, si es 0, le suma a la fila del pivote la primera fila inferior que tenga un 1 en esa columna; así se usa únicamente la transformación indicada. La Sección~\ref{sec:res_pivoteo} evalúa con qué frecuencia ocurre ese caso. El procedimiento se resume en el Algoritmo~\ref{alg:gauss}.
 
-\begin{algorithm}[H]
+\begin{algorithm}[!htbp]
 \caption{Resolución de \textit{Lights Out} por escalerización con suma binaria}
 \label{alg:gauss}
 \small
@@ -267,7 +271,7 @@ Construir $A$ según la Ecuación~\eqref{eq:matriz} y $\mathbf{b}$ recorriendo $
 $M\leftarrow[A\,|\,\mathbf{b}]$;\quad $f\leftarrow 1$;\quad $P\leftarrow$ lista vacía de columnas pivote\;
 \For{$c\leftarrow 1$ \KwTo $n^2$}{
   \If{ninguna fila $k\geq f$ tiene $M_{kc}=1$}{\textbf{continuar} con la siguiente columna ($x_c$ es libre)\;}
-  Tomar la primera fila $k\geq f$ con $M_{kc}=1$ e intercambiar $F_k$ y $F_f$ si $k\neq f$\;
+  \If{$M_{fc}=0$}{Tomar la primera fila $k>f$ con $M_{kc}=1$ y hacer $F_f\leftarrow F_f+F_k$\;}
   \For{cada fila $i\neq f$ con $M_{ic}=1$}{$F_i\leftarrow F_i+F_f$ \tcp*{suma binaria}}
   Agregar $c$ a $P$;\quad $f\leftarrow f+1$\;
 }
@@ -281,18 +285,18 @@ Como se eliminan los unos por encima y por debajo de cada pivote, al terminar ca
 
 \subsection{Implementación}\label{sec:implementacion}
 
-El método se implementó en Python~3 con las bibliotecas NumPy (Harris et al., 2020), para el manejo de matrices, y Matplotlib (Hunter, 2007), para las figuras. Las filas se representan como vectores de enteros sin signo de 8 bits, y la operación $F_i\to F_i+F_f$ se calcula con el operador \textit{o exclusivo} (XOR), que coincide con la suma de $\F$ y opera sobre todas las columnas a la vez. El código fuente, las pruebas y las instrucciones para reproducir todos los resultados de este informe se encuentran en el repositorio \url{\repositorio}. El repositorio contiene tres archivos:
+El método se implementó en Python~3 con las bibliotecas NumPy (Harris et al., 2020), para el manejo de matrices, y Matplotlib (Hunter, 2007), para las figuras. Las filas se representan como vectores de enteros sin signo de 8 bits, y la operación $F_i\to F_i+F_f$ se calcula con el operador \textit{o exclusivo} (XOR), que coincide con la suma de $\F$ y opera sobre todas las columnas a la vez. El código fuente, las pruebas y las instrucciones para reproducir todos los resultados de este informe se encuentran en el repositorio \url{\repositorio}. Los archivos principales son los siguientes:
 \begin{itemize}[leftmargin=2em,itemsep=0pt]
   \item \codigo{lights\_out.py}: módulo con el modelo y la función pedida, \codigo{resolver\_lights\_out}, que recibe una matriz $n\times n$ de ceros y unos y devuelve el vector solución, o lanza la excepción \codigo{SinSolucionError} si el tablero no tiene solución. Incluye también una simulación del juego (\codigo{presionar}, \codigo{aplicar\_solucion}) que aplica las reglas directamente sobre el tablero, sin usar la matriz $A$.
-  \item \codigo{test\_lights\_out.py}: pruebas automáticas que comparan el sistema construido con el de la consigna, verifican la jugada de ejemplo sobre $a_{43}$ y comprueban las soluciones obtenidas.
+  \item \codigo{test\_lights\_out.py}: pruebas automáticas que comparan el sistema construido con el de la consigna, verifican la jugada de ejemplo sobre $a_{43}$, comprueban las soluciones obtenidas y las comparan con una búsqueda exhaustiva.
   \item \codigo{experimentos.py}: genera todas las tablas y figuras de la Sección~\ref{sec:resultados} y un archivo con los resultados numéricos.
 \end{itemize}
 
 \subsection{Diseño de las pruebas y criterios de análisis}\label{sec:pruebas}
 
-Se usaron cuatro conjuntos de casos. El primero son los ejemplos de la consigna: el tablero $3\times 3$, cuyo sistema y solución se compararon con los dados, y el tablero $5\times 5$ usado para ilustrar una jugada. El segundo es un tablero $3\times 3$ tomado de una captura del juego en línea Grid Lights (Artbylogic, s.f.), en el que se interpretó una luz verde como prendida y una roja como apagada. El tercero son tableros aleatorios: para cada $n$ entre 1 y 10 se generaron 2000 tableros con entradas independientes que valen 0 o 1 con igual probabilidad. El cuarto son 200 tableros con solución para cada $n\in\{4,5,9\}$, generados como $\mathbf{b}=A\mathbf{z}$ con $\mathbf{z}$ aleatorio, que se usaron para comparar la cantidad de pulsaciones de las soluciones. Todos los tableros aleatorios se obtuvieron de un único generador de números pseudoaleatorios inicializado con la semilla 2026, de modo que los resultados son reproducibles.
+Se usaron cuatro conjuntos de casos. El primero son los ejemplos de la consigna: el tablero $3\times 3$, cuyo sistema y solución se compararon con los dados, y el tablero $5\times 5$ usado para ilustrar una jugada. El segundo es un tablero $3\times 3$ tomado de una captura del juego en línea Grid Lights (Artbylogic, s.f.), que se reproduce en la Figura~\ref{fig:captura}; se interpretó una luz verde como prendida y una roja como apagada. El tercero son tableros aleatorios: para cada $n$ entre 1 y 10 se generaron 2000 tableros con entradas independientes que valen 0 o 1 con igual probabilidad. El cuarto son 200 tableros con solución para cada $n\in\{4,5,9\}$, generados como $\mathbf{b}=A\mathbf{z}$ con $\mathbf{z}$ aleatorio, que se usaron para comparar la cantidad de pulsaciones de las soluciones. Todos los tableros aleatorios se obtuvieron de un único generador de números pseudoaleatorios inicializado con la semilla 2026, de modo que los resultados son reproducibles.
 
-Se aplicaron los siguientes criterios. Una solución se consideró correcta si, al aplicarla con la simulación del juego, el tablero queda completamente apagado; como la simulación no usa la matriz $A$, esta comprobación es independiente de la construcción del sistema. Para cada $n$ se registraron el rango de $A$ y la dimensión de su núcleo, y se comparó la fracción observada de tableros con solución con la fracción teórica $2^{r}/2^{n^2}=2^{-\dim N(A)}$, que resulta de que la imagen de $A$ tiene $2^r$ elementos. Por último, para evaluar la indicación de la consigna sobre el pivoteo, se escalerizó la matriz $A$ en el orden natural de las ecuaciones sin intercambiar filas y se registró el primer paso en que el elemento de la diagonal es 0.
+Se aplicaron los siguientes criterios. Una solución se consideró correcta si, al aplicarla con la simulación del juego, el tablero queda completamente apagado; como la simulación no usa la matriz $A$, esta comprobación es independiente de la construcción del sistema. Además, en los tableros pequeños se compararon los resultados con una búsqueda exhaustiva: para los 512 tableros $3\times 3$ se probaron los 512 conjuntos de pulsaciones posibles, y para $n=4$ se obtuvieron los tableros con solución aplicando los $2^{16}$ conjuntos de pulsaciones al tablero apagado y se comprobó, en 300 tableros aleatorios, que la función informa que no hay solución exactamente cuando el tablero no está entre ellos. Para cada $n$ se registraron el rango de $A$ y la dimensión de su núcleo, y se comparó la fracción observada de tableros con solución con la fracción teórica $2^{r}/2^{n^2}=2^{-\dim N(A)}$, que resulta de que la imagen de $A$ tiene $2^r$ elementos. Por último, para evaluar la indicación de la consigna sobre el pivoteo, se escalerizó la matriz $A$ en el orden natural de las ecuaciones tomando cada fila tal como está, y se registró el primer paso en que el elemento de la diagonal es 0. También se registró cuántas veces el algoritmo tuvo que corregir el pivote.
 
 % ---------------------------------------------------------------------------
 \section{Resultados}\label{sec:resultados}
@@ -302,7 +306,7 @@ Se aplicaron los siguientes criterios. Una solución se consideró correcta si, 
 
 La matriz $A$ y el vector $\mathbf{b}$ construidos por el programa para el tablero $3\times 3$ coinciden ecuación por ecuación con el sistema de la consigna, y la función devolvió el vector $\mathbf{x}=(0,0,0,0,1,0,0,0,1)$, es decir, $x_5=x_9=1$, que corresponde a presionar las luces $a_{22}$ y $a_{33}$. La Tabla~\ref{tab:verificacion} muestra la sustitución de esta solución en cada ecuación: en todos los casos el lado izquierdo coincide con el término independiente. En las ecuaciones 6 y 8 aparecen a la vez $x_5$ y $x_9$, y la suma $1+1=0$ refleja que las luces $a_{23}$ y $a_{32}$ cambian dos veces de estado.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption{Verificación de la solución $x_5=x_9=1$, $x_i=0$ en las demás incógnitas, para el tablero $3\times 3$}
 \label{tab:verificacion}
@@ -329,24 +333,31 @@ Ec. & Ecuación & Sustitución & Resultado & Término independiente \\
 \end{minipage}
 \end{table}
 
-Para este tablero la escalerización no dejó incógnitas libres (rango 9), por lo que esta es la única solución del sistema. La primera fila de la Figura~\ref{fig:ejemplos} muestra el tablero inicial, las luces presionadas y el tablero final obtenido con la simulación.
+Para este tablero la escalerización no dejó incógnitas libres (rango 9). La primera fila de la Figura~\ref{fig:ejemplos} muestra el tablero inicial, las luces presionadas y el tablero final obtenido con la simulación.
 
-\subsection{Captura del juego en línea y tablero 5\texorpdfstring{$\times$}{x}5 de la consigna}
+\subsection{Captura del juego en línea y tablero 5\texorpdfstring{$\times$}{x}5 de la consigna}\label{sec:res_captura}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.32\textwidth]{imagenes/captura_grid_lights.png}
+  \caption{Captura del juego en línea Grid Lights en modo $3\times 3$, usada como caso de prueba (Artbylogic, s.f.). Se interpretan las luces verdes como prendidas (1) y las rojas como apagadas (0), lo que da el tablero de la Sección~\ref{sec:res_captura}.}
+  \label{fig:captura}
+\end{figure}
 
 Para el tablero de la captura de Grid Lights,
 \[
 T=\begin{pmatrix}0&1&1\\0&0&1\\0&0&0\end{pmatrix},
 \]
-la función devolvió $\mathbf{x}=(0,0,1,0,0,0,0,0,0)$, es decir, presionar únicamente la luz $a_{13}$. Al ser también un tablero $3\times 3$, la solución es única. La segunda fila de la Figura~\ref{fig:ejemplos} muestra el resultado.
+la función devolvió $\mathbf{x}=(0,0,1,0,0,0,0,0,0)$, es decir, presionar únicamente la luz $a_{13}$. La Figura~\ref{fig:captura} muestra la captura original y la segunda fila de la Figura~\ref{fig:ejemplos}, el resultado.
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{generado/figura_ejemplos.pdf}
-  \caption{Resolución de los dos tableros $3\times 3$: arriba, el ejemplo de la consigna; abajo, la captura del juego Grid Lights. Las casillas amarillas son luces prendidas y las grises, apagadas. La columna central marca con un punto negro las luces que indica presionar la función \codigo{resolver\_lights\_out}, y la columna derecha es el tablero que resulta de presionarlas según las reglas del juego.}
+  \caption{Resolución de los dos tableros $3\times 3$: arriba, el ejemplo de la consigna; abajo, la captura del juego Grid Lights. Las casillas anaranjadas son luces prendidas y las grises, apagadas. La columna central marca con un punto negro las luces que indica presionar la función \codigo{resolver\_lights\_out}, y la columna derecha es el tablero que resulta de presionarlas según las reglas del juego.}
   \label{fig:ejemplos}
 \end{figure}
 
-La simulación de la jugada sobre $a_{43}$ en el tablero $5\times 5$ de la consigna reprodujo exactamente el tablero que se muestra allí. Sin embargo, el sistema asociado a ese tablero resultó incompatible: la escalerización produjo una fila de la forma $0=1$, de modo que ese estado no puede apagarse. Para $n=5$ el núcleo de $A$ tiene dimensión 2 y una base es
+La simulación de la jugada sobre $a_{43}$ en el tablero $5\times 5$ de la consigna reprodujo exactamente el tablero que se muestra allí. Sin embargo, el sistema asociado a ese tablero resultó incompatible: la escalerización produjo una fila de la forma $0=1$. Para $n=5$ el núcleo de $A$ tiene dimensión 2 y una base es
 \[
 \mathbf{z}_1=\begin{pmatrix}0&1&1&1&0\\1&0&1&0&1\\1&1&0&1&1\\1&0&1&0&1\\0&1&1&1&0\end{pmatrix},\qquad
 \mathbf{z}_2=\begin{pmatrix}1&0&1&0&1\\1&0&1&0&1\\0&0&0&0&0\\1&0&1&0&1\\1&0&1&0&1\end{pmatrix},
@@ -357,16 +368,17 @@ escritos como tableros. El producto (con la suma de $\F$) del vector $\mathbf{b}
 
 La Tabla~\ref{tab:tamanos} resume, para cada $n$ entre 1 y 10, el rango de $A$, la dimensión de su núcleo, la fracción de tableros con solución esperada y la observada en los 2000 tableros aleatorios, y la cantidad de soluciones que apagaron el tablero en la simulación. La matriz tiene rango completo para $n\in\{1,2,3,6,7,8,10\}$, y en esos tamaños todos los tableros generados tuvieron solución. Para $n=4$, $n=5$ y $n=9$ el núcleo tiene dimensión 4, 2 y 8, respectivamente, y la proporción de tableros con solución fue de 0,0615, 0,2475 y 0,0035, frente a los valores teóricos 0,0625, 0,25 y 0,0039. En todos los tamaños, el 100\,\% de las soluciones devueltas por la función apagó el tablero al aplicarse con la simulación. La Figura~\ref{fig:fraccion} representa la comparación entre ambas fracciones.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
-\caption{Rango y núcleo de la matriz del sistema, y fracción de tableros aleatorios con solución, para $n$ entre 1 y 10}
+\caption{Rango y núcleo de la matriz del sistema, fracción de tableros aleatorios con solución, soluciones verificadas por simulación y comportamiento del pivote, para $n$ entre 1 y 10}
 \label{tab:tamanos}
-\small
-\begin{tabular}{c c c c c c c c}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{c c c c c c c c c}
 \toprule
-$n$ & Incógnitas & Rango & $\dim N(A)$ & \multicolumn{2}{c}{Fracción con solución} & Soluciones & Paso con \\
+$n$ & Incógnitas & Rango & $\dim N(A)$ & \multicolumn{2}{c}{Fracción con solución} & Soluciones & Paso con & Correcciones \\
 \cmidrule(lr){5-6}
- & ($n^2$) & de $A$ & & Teórica & Observada & verificadas & pivote nulo \\
+ & ($n^2$) & de $A$ & & Teórica & Observada & verificadas & pivote nulo & del pivote \\
 \midrule
 \filasdetabla{generado/tabla_tamanos.tex}
 \bottomrule
@@ -374,30 +386,30 @@ $n$ & Incógnitas & Rango & $\dim N(A)$ & \multicolumn{2}{c}{Fracción con soluc
 
 \vspace{4pt}
 \begin{minipage}{0.95\textwidth}
-\footnotesize\textit{Nota.} La fracción teórica es $2^{-\dim N(A)}$. La fracción observada se calculó sobre 2000 tableros aleatorios por tamaño (semilla 2026). \textit{Soluciones verificadas} indica cuántas de las soluciones obtenidas apagaron el tablero en la simulación, sobre el total de tableros con solución. \textit{Paso con pivote nulo} es el primer paso de la escalerización sin intercambio de filas en el que la entrada diagonal es 0; un guion indica que ese caso no se presenta.
+\footnotesize\textit{Nota.} La fracción teórica es $2^{-\dim N(A)}$. La fracción observada se calculó sobre 2000 tableros aleatorios por tamaño (semilla 2026). \textit{Soluciones verificadas} indica cuántas de las soluciones obtenidas apagaron el tablero en la simulación, sobre el total de tableros con solución. \textit{Paso con pivote nulo} es el primer paso de la escalerización, tomando cada fila tal como está, en el que la entrada diagonal es 0; un guion indica que ese caso no se presenta. \textit{Correcciones del pivote} es la cantidad de pasos en que el algoritmo tuvo que sumar a la fila del pivote una fila inferior.
 \end{minipage}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{generado/figura_fraccion.pdf}
   \caption{Fracción de tableros $n\times n$ que tienen solución. Las barras muestran la proporción observada en 2000 tableros aleatorios por tamaño y los rombos, el valor teórico $2^{-\dim N(A)}$. Para $n=9$ la proporción es 0,0035, por lo que la barra no es visible a esta escala.}
   \label{fig:fraccion}
 \end{figure}
 
-\subsection{Escalerización sin intercambio de filas}\label{sec:res_pivoteo}
+\subsection{Entradas nulas en la posición de pivote}\label{sec:res_pivoteo}
 
-Al escalerizar $A$ en el orden natural de las ecuaciones sin intercambiar filas, la entrada diagonal del segundo paso fue 0 para todos los tamaños entre $n=2$ y $n=10$ (última columna de la Tabla~\ref{tab:tamanos}). Para $n=3$, las dos primeras filas de $A$ son
+Al escalerizar $A$ en el orden natural de las ecuaciones tomando cada fila tal como está, la entrada diagonal del segundo paso fue 0 para todos los tamaños entre $n=2$ y $n=10$ (penúltima columna de la Tabla~\ref{tab:tamanos}). Para $n=3$, las dos primeras filas de $A$ son
 \[
 F_1=(1,1,0,1,0,0,0,0,0),\qquad F_2=(1,1,1,0,1,0,0,0,0),
 \]
-y la eliminación de la primera columna, $F_2\to F_2+F_1$, da $F_2=(0,0,1,1,1,0,0,0,0)$, cuya segunda entrada es 0. La fila $F_3=(0,1,1,0,0,1,0,0,0)$ sí tiene un 1 en esa columna, por lo que un intercambio de filas permite continuar. En la implementación con intercambio, la escalerización de $A$ requirió entre 1 y 41 intercambios de filas según el tamaño (1 para $n=2$, 3 para $n=3$ y 41 para $n=10$).
+y la eliminación de la primera columna, $F_2\to F_2+F_1$, da $F_2=(0,0,1,1,1,0,0,0,0)$, cuya segunda entrada es 0, mientras que la fila $F_3=(0,1,1,0,0,1,0,0,0)$ tiene un 1 en esa columna. La transformación $F_2\to F_2+F_3$ da $F_2=(0,1,0,1,1,1,0,0,0)$, con un 1 en la posición de pivote. Para $n$ entre 2 y 10, el algoritmo tuvo que corregir el pivote de esta forma entre 1 y 41 veces según el tamaño (última columna de la Tabla~\ref{tab:tamanos}).
 
 \subsection{Cantidad de pulsaciones}
 
-La Tabla~\ref{tab:pulsaciones} compara, para los tamaños con más de una solución por tablero, la cantidad media de luces que presiona la solución con incógnitas libres en 0 y la de la solución con menos pulsaciones. En los tres tamaños la solución mínima requirió en promedio menos pulsaciones: 4,22 frente a 6,20 para $n=4$, 9,91 frente a 11,22 para $n=5$ y 27,79 frente a 36,64 para $n=9$.
+La Tabla~\ref{tab:pulsaciones} compara, para los tamaños con más de una solución por tablero, la cantidad media de luces que presiona la solución con incógnitas libres en 0 y la de la solución con menos pulsaciones. En los tres tamaños la solución mínima requirió en promedio menos pulsaciones: 4,225 frente a 6,195 para $n=4$, 9,915 frente a 11,225 para $n=5$ y 27,790 frente a 36,640 para $n=9$.
 
-\begin{table}[H]
+\begin{table}[!htbp]
 \centering
 \caption{Cantidad media de luces presionadas por la solución con incógnitas libres en 0 y por la solución mínima}
 \label{tab:pulsaciones}
@@ -422,17 +434,17 @@ $n$ & $\dim N(A)$ & Tableros & \multicolumn{2}{c}{Pulsaciones medias} \\
 \section{Discusión}\label{sec:discusion}
 % ---------------------------------------------------------------------------
 
-Los resultados confirman que el modelo lineal describe correctamente el juego. El sistema generado por el programa coincide con el de la consigna, la solución $x_5=x_9=1$ satisface las nueve ecuaciones y todas las soluciones obtenidas para tableros aleatorios apagaron el tablero en una simulación que no depende de la matriz $A$. Esto último es relevante porque un error en la construcción de $A$ (por ejemplo, en la numeración de las luces o en el tratamiento de los bordes) produciría soluciones que satisfacen el sistema pero no ganan el juego, y la comparación con la simulación lo habría detectado.
+Los resultados confirman que el modelo lineal describe correctamente el juego. El sistema generado por el programa coincide con el de la consigna, la solución $x_5=x_9=1$ satisface las nueve ecuaciones y todas las soluciones obtenidas para tableros aleatorios apagaron el tablero en una simulación que no depende de la matriz $A$. Como para $n=3$ la matriz tiene rango 9, la solución encontrada para el tablero de la consigna y para el de la captura es, en cada caso, la única, lo que coincide con la búsqueda exhaustiva sobre todos los tableros $3\times 3$. Esto último es relevante porque un error en la construcción de $A$ (por ejemplo, en la numeración de las luces o en el tratamiento de los bordes) produciría soluciones que satisfacen el sistema pero no ganan el juego, y la comparación con la simulación lo habría detectado.
 
 El hallazgo más importante es que la existencia de solución depende del tamaño del tablero. Cuando $A$ es invertible, cada tablero tiene exactamente una solución; cuando no lo es, la imagen de $A$ es un subespacio propio de $\F^{n^2}$ y solo los tableros que pertenecen a ella pueden apagarse. Para $n=5$ el rango es 23, lo que coincide con lo reportado por Anderson y Feil (1998), y solo uno de cada cuatro tableros tiene solución. Las frecuencias observadas en la Tabla~\ref{tab:tamanos} difieren de las teóricas en a lo sumo 0,0025, una diferencia menor que el error estándar de una proporción estimada con 2000 tableros (aproximadamente 0,01 para $n=5$), por lo que el acuerdo entre teoría y experimento es el esperable. El caso $n=9$ muestra que el tamaño del núcleo no crece de forma regular con $n$: allí solo 7 de los 2000 tableros tuvieron solución, mientras que para $n=10$ la tuvieron todos.
 
-El tablero $5\times 5$ de la consigna ilustra este fenómeno. La consigna lo usa solamente para mostrar una jugada, pero ese estado no tiene solución. Como $A$ es simétrica, su imagen coincide con el conjunto de vectores ortogonales (con la suma de $\F$) a todos los vectores de su núcleo (Anderson y Feil, 1998), y por eso basta comprobar dos productos: el producto con $\mathbf{z}_1$ es 1, lo que muestra que el tablero no está en la imagen. Este criterio tiene una interpretación concreta. Presionar las luces marcadas en $\mathbf{z}_1$ no cambia ningún tablero, y el producto $\mathbf{z}_1\cdot\mathbf{b}$ cuenta, módulo 2, las luces prendidas en las posiciones marcadas por $\mathbf{z}_1$. Toda pulsación cambia una cantidad par de esas luces, por lo que la paridad se conserva durante todo el juego; si al comienzo es impar, nunca se llega al tablero apagado, cuya paridad es par. Además, como la jugada sobre $a_{43}$ suma a $\mathbf{b}$ una columna de $A$, que pertenece a la imagen, el tablero resultante tampoco tiene solución.
+El tablero $5\times 5$ de la consigna ilustra este fenómeno. La consigna lo usa solamente para mostrar una jugada, pero la incompatibilidad de su sistema indica que ese estado no puede apagarse. Como $A$ es simétrica, su imagen coincide con el conjunto de vectores ortogonales (con la suma de $\F$) a todos los vectores de su núcleo (Anderson y Feil, 1998), y por eso basta comprobar dos productos: el producto con $\mathbf{z}_1$ es 1, lo que muestra que el tablero no está en la imagen. Este criterio tiene una interpretación concreta. Presionar las luces marcadas en $\mathbf{z}_1$ no cambia ningún tablero, y el producto $\mathbf{z}_1\cdot\mathbf{b}$ cuenta, módulo 2, las luces prendidas en las posiciones marcadas por $\mathbf{z}_1$. Toda pulsación cambia una cantidad par de esas luces, por lo que la paridad se conserva durante todo el juego; si al comienzo es impar, nunca se llega al tablero apagado, cuya paridad es par. Además, como la jugada sobre $a_{43}$ suma a $\mathbf{b}$ una columna de $A$, que pertenece a la imagen, el tablero resultante tampoco tiene solución.
 
-En cuanto al método, la indicación de la consigna de que nunca es necesario el pivoteo no se verificó en este trabajo. Para todo $n\geq 2$ las luces 1 y 2 son vecinas, por lo que las dos primeras filas de $A$ tienen un 1 en las columnas 1 y 2; al sumar $F_1$ a $F_2$ ambas entradas se anulan, y el segundo pivote resulta 0. Una implementación que asumiera que el pivote siempre es 1 cometería un error a partir del segundo paso. Una interpretación posible es que la consigna se refiere a que, en $\F$, no hay que elegir el pivote de mayor valor absoluto para reducir errores de redondeo, como se hace con números reales, ya que todas las operaciones son exactas; en ese sentido es cierto que no se necesita una estrategia de pivoteo, pero sigue siendo necesario intercambiar filas cuando el elemento en la posición de pivote es 0.
+En cuanto al método, los resultados de la Sección~\ref{sec:res_pivoteo} muestran que la entrada en la posición de pivote no siempre vale 1. La razón es estructural: para todo $n\geq 2$ las luces 1 y 2 son vecinas, por lo que las dos primeras filas de $A$ tienen un 1 en las columnas 1 y 2, y al sumar $F_1$ a $F_2$ ambas entradas se anulan. Una implementación que tomara cada fila tal como está y asumiera que el pivote vale 1 fallaría desde el segundo paso. Sin embargo, esto no contradice la indicación de la consigna de usar únicamente $F_i\to F_i+F_j$: basta con sumar a la fila del pivote una fila inferior que tenga un 1 en esa columna, como hace el Algoritmo~\ref{alg:gauss}, sin necesidad de intercambiar filas. En ese sentido, lo que la consigna llama ``no hacer pivoteo'' es posible, siempre que se busque la fila adecuada antes de eliminar. Además, a diferencia de lo que ocurre con números reales, en $\F$ no hace falta elegir el pivote de mayor valor absoluto para reducir errores de redondeo, porque todas las operaciones son exactas.
 
 Cuando hay varias soluciones, la elección de las incógnitas libres afecta la cantidad de pulsaciones, como muestra la Tabla~\ref{tab:pulsaciones}. Asignar 0 a las incógnitas libres es una elección cómoda, pero no produce la solución más corta: en $n=4$ la solución mínima requiere en promedio alrededor de un tercio menos de pulsaciones. Obtener la mínima exige recorrer las $2^{\dim N(A)}$ soluciones, lo que es posible para los tamaños estudiados pero crece exponencialmente con la dimensión del núcleo.
 
-El trabajo tiene algunas limitaciones. La escalerización requiere del orden de $n^6$ operaciones elementales, ya que procesa una matriz de $n^2\times n^2$ con hasta $n^2$ eliminaciones por columna; esto es suficiente para los tamaños usados en el juego, pero sería lento para tableros mucho más grandes, en los que convendría aprovechar que $A$ es dispersa. Los resultados empíricos se limitan a $n\leq 10$ y a una única semilla. Por último, para la captura de Grid Lights se supuso que la luz verde está prendida; si se usara la convención opuesta, el tablero inicial sería el complemento y la solución cambiaría, aunque el método sería el mismo.
+El trabajo tiene algunas limitaciones. La escalerización realiza del orden de $n^4$ operaciones de fila (hasta $n^2$ por cada una de las $n^2$ columnas), cada una sobre unas $n^2$ entradas, lo que da del orden de $n^6$ operaciones sobre bits; esto es suficiente para los tamaños usados en el juego, pero sería lento para tableros mucho más grandes, en los que convendría aprovechar que $A$ es dispersa. Los resultados empíricos se limitan a $n\leq 10$ y a una única semilla. Por último, para la captura de Grid Lights se supuso que la luz verde está prendida; si se usara la convención opuesta, el tablero inicial sería el complemento y la solución cambiaría, aunque el método sería el mismo.
 
 % ---------------------------------------------------------------------------
 \section{Conclusiones}\label{sec:conclusiones}
@@ -440,7 +452,7 @@ El trabajo tiene algunas limitaciones. La escalerización requiere del orden de 
 
 Se mostró que el juego \textit{Lights Out} admite un modelo lineal exacto. Como presionar dos veces una luz no tiene efecto y el orden de las pulsaciones no altera el resultado, cada solución se representa con un vector de $\F^{n^2}$, y apagar el tablero equivale a resolver el sistema $A\mathbf{x}=\mathbf{b}$, donde $A$ codifica los vecindarios de las luces y $\mathbf{b}$ el estado inicial. Para el ejemplo $3\times 3$ de la consigna se justificaron las nueve ecuaciones y se verificó que presionar $a_{22}$ y $a_{33}$ es su única solución.
 
-La función implementada en Python resuelve el sistema mediante escalerización de Gauss-Jordan con suma binaria y resolvió correctamente todos los tableros con solución que se le presentaron. Para que funcione en todos los casos fue necesario incluir el intercambio de filas, contrariamente a lo indicado en la consigna, y detectar los sistemas incompatibles.
+La función implementada en Python resuelve el sistema mediante escalerización de Gauss-Jordan con suma binaria y resolvió correctamente todos los tableros con solución que se le presentaron. Para que funcione en todos los casos fue necesario contemplar que la entrada en la posición de pivote puede ser 0, lo que se resolvió sumando una fila inferior, dentro de la única transformación indicada en la consigna, y detectar los sistemas incompatibles.
 
 En cuanto al cuarto objetivo, se concluye que todo tablero tiene solución única cuando la matriz del sistema es invertible, lo que ocurre para $n\in\{1,2,3,6,7,8,10\}$ dentro de los tamaños estudiados. Para $n\in\{4,5,9\}$ solo una fracción $2^{-\dim N(A)}$ de los tableros tiene solución, y cada uno de ellos admite $2^{\dim N(A)}$ soluciones distintas. El mismo análisis permite decidir antes de jugar si un tablero tiene solución, comprobando su paridad respecto de los vectores del núcleo, como se mostró con el tablero $5\times 5$ de la consigna.
 
@@ -462,11 +474,15 @@ Artbylogic. (s.f.). \textit{Grid Lights} [Juego en línea]. \url{https://artbylo
 
 Harris, C. R., Millman, K. J., van der Walt, S. J., Gommers, R., Virtanen, P., Cournapeau, D., Wieser, E., Taylor, J., Berg, S., Smith, N. J., Kern, R., Picus, M., Hoyer, S., van Kerkwijk, M. H., Brett, M., Haldane, A., Fernández del Río, J., Wiebe, M., Peterson, P., \ldots{} Oliphant, T. E. (2020). Array programming with NumPy. \textit{Nature, 585}(7825), 357--362. \url{https://doi.org/10.1038/s41586-020-2649-2}
 
+Hoffman, K., y Kunze, R. (1971). \textit{Linear algebra} (2.ª ed.). Prentice-Hall.
+
 Hunter, J. D. (2007). Matplotlib: A 2D graphics environment. \textit{Computing in Science \& Engineering, 9}(3), 90--95. \url{https://doi.org/10.1109/MCSE.2007.55}
 
 Lay, D. C., Lay, S. R., y McDonald, J. J. (2016). \textit{Linear algebra and its applications} (5.ª ed.). Pearson.
 
 Lidl, R., y Niederreiter, H. (1997). \textit{Finite fields} (2.ª ed.). Cambridge University Press.
+
+Sutner, K. (1989). Linear cellular automata and the Garden-of-Eden. \textit{The Mathematical Intelligencer, 11}(2), 49--53.
 
 Universidad Católica del Uruguay. (s.f.). \textit{Proyecto Lights Out!} [Consigna del curso Álgebra Aplicada]. Facultad de Ingeniería y Tecnologías.
 

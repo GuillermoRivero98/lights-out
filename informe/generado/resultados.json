@@ -115,7 +115,7 @@
       "con_solucion": 2000,
       "verificadas": 2000,
       "paso_pivote_nulo": null,
-      "intercambios_de_filas": 0
+      "correcciones_de_pivote": 0
     },
     {
       "n": 2,
@@ -127,7 +127,7 @@
       "con_solucion": 2000,
       "verificadas": 2000,
       "paso_pivote_nulo": 2,
-      "intercambios_de_filas": 1
+      "correcciones_de_pivote": 1
     },
     {
       "n": 3,
@@ -139,7 +139,7 @@
       "con_solucion": 2000,
       "verificadas": 2000,
       "paso_pivote_nulo": 2,
-      "intercambios_de_filas": 3
+      "correcciones_de_pivote": 3
     },
     {
       "n": 4,
@@ -151,7 +151,7 @@
       "con_solucion": 123,
       "verificadas": 123,
       "paso_pivote_nulo": 2,
-      "intercambios_de_filas": 4
+      "correcciones_de_pivote": 4
     },
     {
       "n": 5,
@@ -163,7 +163,7 @@
       "con_solucion": 495,
       "verificadas": 495,
       "paso_pivote_nulo": 2,
-      "intercambios_de_filas": 9
+      "correcciones_de_pivote": 9
     },
     {
       "n": 6,
@@ -175,7 +175,7 @@
       "con_solucion": 2000,
       "verificadas": 2000,
       "paso_pivote_nulo": 2,
-      "intercambios_de_filas": 14
+      "correcciones_de_pivote": 14
     },
     {
       "n": 7,
@@ -187,7 +187,7 @@
       "con_solucion": 2000,
       "verificadas": 2000,
       "paso_pivote_nulo": 2,
-      "intercambios_de_filas": 20
+      "correcciones_de_pivote": 20
     },
     {
       "n": 8,
@@ -199,7 +199,7 @@
       "con_solucion": 2000,
       "verificadas": 2000,
       "paso_pivote_nulo": 2,
-      "intercambios_de_filas": 26
+      "correcciones_de_pivote": 26
     },
     {
       "n": 9,
@@ -211,7 +211,7 @@
       "con_solucion": 7,
       "verificadas": 7,
       "paso_pivote_nulo": 2,
-      "intercambios_de_filas": 30
+      "correcciones_de_pivote": 30
     },
     {
       "n": 10,
@@ -223,7 +223,7 @@
       "con_solucion": 2000,
       "verificadas": 2000,
       "paso_pivote_nulo": 2,
-      "intercambios_de_filas": 41
+      "correcciones_de_pivote": 41
     }
   ],
   "pulsaciones": [

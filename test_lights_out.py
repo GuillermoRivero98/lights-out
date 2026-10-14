@@ -1,29 +1,20 @@
 """Pruebas de lights_out.py. Ejecutar con:  python -m unittest -v"""
 
 import unittest
+from itertools import product
 
 import numpy as np
 
 from lights_out import (
-    SinSolucionError, aplicar_solucion, base_del_nucleo, es_solucion,
+    TABLERO_CONSIGNA_3X3, TABLERO_CONSIGNA_5X5, TABLERO_CONSIGNA_5X5_TRAS_A43,
+    SinSolucionError, posicion_a_indice, aplicar_solucion, base_del_nucleo, es_solucion,
     escalerizar_gf2, indice_a_posicion, matriz_del_sistema, presionar,
     primer_pivote_nulo, resolver_lights_out, vector_independiente,
 )
 
-# Ejemplos tomados de la letra del proyecto.
-TABLERO_3X3 = np.array([[0, 1, 0],
-                        [1, 1, 0],
-                        [0, 0, 1]])
-TABLERO_5X5 = np.array([[0, 0, 1, 1, 1],
-                        [0, 1, 1, 1, 0],
-                        [1, 0, 0, 1, 1],
-                        [1, 1, 0, 0, 1],
-                        [0, 1, 1, 1, 0]])
-TABLERO_5X5_TRAS_A43 = np.array([[0, 0, 1, 1, 1],
-                                 [0, 1, 1, 1, 0],
-                                 [1, 0, 1, 1, 1],
-                                 [1, 0, 1, 1, 1],
-                                 [0, 1, 0, 1, 0]])
+TABLERO_3X3 = TABLERO_CONSIGNA_3X3
+TABLERO_5X5 = TABLERO_CONSIGNA_5X5
+TABLERO_5X5_TRAS_A43 = TABLERO_CONSIGNA_5X5_TRAS_A43
 
 # Las nueve ecuaciones del sistema de la letra, escritas como listas de
 # incógnitas (numeradas desde 1) y término independiente.
@@ -42,6 +33,10 @@ class TestModelo(unittest.TestCase):
         self.assertEqual(indice_a_posicion(5, 3), (2, 2))
         self.assertEqual(indice_a_posicion(9, 3), (3, 3))
         self.assertEqual(indice_a_posicion(18, 5), (4, 3))
+        # La correspondencia es biunívoca.
+        for n in range(1, 7):
+            for i in range(1, n * n + 1):
+                self.assertEqual(posicion_a_indice(*indice_a_posicion(i, n), n), i)
 
     def test_jugada_a43_de_la_letra(self):
         # a_43 es la fila 4, columna 3 (base 0: (3, 2)).
@@ -70,6 +65,43 @@ class TestModelo(unittest.TestCase):
         # Presionar en distinto orden da el mismo tablero.
         np.testing.assert_array_equal(presionar(presionar(t, 0, 0), 2, 3),
                                       presionar(presionar(t, 2, 3), 0, 0))
+
+
+def soluciones_por_fuerza_bruta(tablero):
+    """Todas las soluciones, probando los 2^(n^2) conjuntos de pulsaciones con
+    la simulación del juego (no usa la matriz del sistema)."""
+    n = tablero.shape[0]
+    return [np.array(x, dtype=np.uint8)
+            for x in product((0, 1), repeat=n * n)
+            if es_solucion(tablero, np.array(x, dtype=np.uint8))]
+
+
+class TestFuerzaBruta(unittest.TestCase):
+    """Comparación con una búsqueda exhaustiva, independiente del álgebra."""
+
+    def test_todos_los_tableros_3x3(self):
+        # Para n = 3 hay una única solución por tablero.
+        for estado in product((0, 1), repeat=9):
+            t = np.array(estado, dtype=np.uint8).reshape(3, 3)
+            (unica,) = soluciones_por_fuerza_bruta(t)
+            np.testing.assert_array_equal(resolver_lights_out(t), unica)
+
+    def test_existencia_de_solucion_4x4(self):
+        # Tableros 4x4 con solución: los que se obtienen al aplicar algún
+        # conjunto de pulsaciones al tablero apagado (las reglas son
+        # reversibles: aplicarlas de nuevo lo vuelve a apagar).
+        apagado = np.zeros((4, 4), dtype=np.uint8)
+        alcanzables = {aplicar_solucion(apagado, np.array(x)).tobytes()
+                       for x in product((0, 1), repeat=16)}
+        self.assertEqual(len(alcanzables), 2 ** 12)
+        rng = np.random.default_rng(11)
+        for _ in range(300):
+            t = rng.integers(0, 2, (4, 4)).astype(np.uint8)
+            if t.tobytes() in alcanzables:
+                self.assertTrue(es_solucion(t, resolver_lights_out(t)))
+            else:
+                with self.assertRaises(SinSolucionError):
+                    resolver_lights_out(t)
 
 
 class TestResolucion(unittest.TestCase):
@@ -144,9 +176,13 @@ class TestResolucion(unittest.TestCase):
             resolver_lights_out([[0, 1, 0]])
         with self.assertRaises(ValueError):
             resolver_lights_out([[0, 2], [1, 0]])
+        with self.assertRaises(ValueError):
+            resolver_lights_out([[0.5, 1], [1, 1]])
+        with self.assertRaises(ValueError):
+            resolver_lights_out([[-1, 0], [0, 0]])
 
-    def test_sin_pivoteo_falla(self):
-        # La escalerización sin intercambiar filas se detiene en el paso 2.
+    def test_pivote_nulo_en_el_paso_2(self):
+        # Tomando cada fila tal como está, el segundo pivote es 0.
         for n in range(2, 11):
             self.assertEqual(primer_pivote_nulo(n), 2)
         self.assertIsNone(primer_pivote_nulo(1))

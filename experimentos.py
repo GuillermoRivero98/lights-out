@@ -14,6 +14,8 @@ import numpy as np
 from matplotlib.colors import ListedColormap
 
 from lights_out import (
+    TABLERO_CONSIGNA_3X3 as TABLERO_LETRA_3X3,
+    TABLERO_CONSIGNA_5X5 as TABLERO_LETRA_5X5,
     SinSolucionError, aplicar_solucion, base_del_nucleo, es_solucion,
     escalerizar_gf2, matriz_del_sistema, primer_pivote_nulo,
     resolver_lights_out, vector_independiente,
@@ -24,14 +26,7 @@ TABLEROS_POR_N = 2000     # tableros aleatorios por tamaño
 TAMANOS = range(1, 11)    # n = 1, ..., 10
 SALIDA = Path(__file__).parent / "informe" / "generado"
 
-# Tableros de la letra y de la captura del juego Grid Lights
-# (verde = prendida = 1, rojo = apagada = 0).
-TABLERO_LETRA_3X3 = np.array([[0, 1, 0], [1, 1, 0], [0, 0, 1]])
-TABLERO_LETRA_5X5 = np.array([[0, 0, 1, 1, 1],
-                              [0, 1, 1, 1, 0],
-                              [1, 0, 0, 1, 1],
-                              [1, 1, 0, 0, 1],
-                              [0, 1, 1, 1, 0]])
+# Captura del juego Grid Lights (verde = prendida = 1, rojo = apagada = 0).
 TABLERO_GRID_LIGHTS = np.array([[0, 1, 1], [0, 0, 1], [0, 0, 0]])
 
 # Colores (paleta de referencia de la guía de visualización).
@@ -78,7 +73,7 @@ def analizar_tamano(n: int, rng: np.random.Generator) -> dict:
         "con_solucion": con_solucion,
         "verificadas": verificadas,
         "paso_pivote_nulo": primer_pivote_nulo(n),
-        "intercambios_de_filas": esc.intercambios,
+        "correcciones_de_pivote": esc.correcciones,
     }
 
 
@@ -97,7 +92,8 @@ def comparar_pulsaciones(n: int, cantidad: int, rng: np.random.Generator):
         tablero = (A @ z % 2).reshape(n, n)
         x = resolver_lights_out(tablero)
         x_min = resolver_lights_out(tablero, minimizar=True)
-        assert es_solucion(tablero, x_min)
+        if not es_solucion(tablero, x_min):
+            raise RuntimeError("La solución mínima no apaga el tablero.")
         particular.append(int(x.sum()))
         minima.append(int(x_min.sum()))
     return float(np.mean(particular)), float(np.mean(minima))
@@ -131,9 +127,9 @@ def dibujar_tablero(ax, tablero, pulsaciones=None, titulo=""):
 
 
 def figura_ejemplos(ruta: Path):
-    """Figura 1: los dos tableros 3 x 3 resueltos con la función."""
+    """Los dos tableros 3 x 3 resueltos con la función."""
     fig, ejes = plt.subplots(2, 3, figsize=(6.4, 4.6))
-    casos = [("Tablero de la letra", TABLERO_LETRA_3X3),
+    casos = [("Tablero de la consigna", TABLERO_LETRA_3X3),
              ("Captura de Grid Lights", TABLERO_GRID_LIGHTS)]
     for fila, (nombre, tablero) in enumerate(casos):
         x = resolver_lights_out(tablero)
@@ -143,19 +139,19 @@ def figura_ejemplos(ruta: Path):
                         titulo="Estado final")
         ejes[fila, 0].set_ylabel(nombre, fontsize=10, labelpad=8)
     fig.tight_layout()
-    fig.savefig(ruta)
+    fig.savefig(ruta, metadata={"CreationDate": None})
     plt.close(fig)
 
 
 def figura_fraccion(resultados: list[dict], ruta: Path):
-    """Figura 2: fracción de tableros con solución, empírica y teórica."""
+    """Fracción de tableros con solución, observada y teórica."""
     ns = [r["n"] for r in resultados]
     empirica = [r["fraccion_empirica"] for r in resultados]
     teorica = [r["fraccion_teorica"] for r in resultados]
 
     fig, ax = plt.subplots(figsize=(6.0, 3.0))
     ax.bar(ns, empirica, width=0.55, color=AZUL,
-           label=f"Empírica ({TABLEROS_POR_N} tableros por $n$)")
+           label=f"Observada ({TABLEROS_POR_N} tableros por $n$)")
     ax.plot(ns, teorica, "D", color=TINTA, markersize=6, linestyle="none",
             label=r"Teórica: $2^{-\dim N(A)}$")
     ax.set_xticks(ns)
@@ -168,12 +164,12 @@ def figura_fraccion(resultados: list[dict], ruta: Path):
     ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2,
               frameon=False, fontsize=9)
     fig.tight_layout()
-    fig.savefig(ruta)
+    fig.savefig(ruta, metadata={"CreationDate": None})
     plt.close(fig)
 
 
 def figura_matriz(n: int, ruta: Path):
-    """Figura 3: patrón de unos de la matriz del sistema."""
+    """Patrón de unos de la matriz del sistema."""
     A = matriz_del_sistema(n)
     fig, ax = plt.subplots(figsize=(3.4, 3.4))
     ax.imshow(A, cmap=ListedColormap(["white", AZUL]), vmin=0, vmax=1)
@@ -187,7 +183,7 @@ def figura_matriz(n: int, ruta: Path):
     for lado in ax.spines.values():
         lado.set_visible(True)
     fig.tight_layout()
-    fig.savefig(ruta)
+    fig.savefig(ruta, metadata={"CreationDate": None})
     plt.close(fig)
 
 
@@ -208,12 +204,13 @@ def tabla_tamanos(resultados: list[dict], ruta: Path):
             f"{r['n']} & {r['incognitas']} & {r['rango']} & {r['dim_nucleo']}"
             f" & {coma(r['fraccion_teorica'], 4)}"
             f" & {coma(r['fraccion_empirica'], 4)}"
-            f" & {r['verificadas']}/{r['con_solucion']} & {paso} \\\\")
+            f" & {r['verificadas']}/{r['con_solucion']} & {paso}"
+            f" & {r['correcciones_de_pivote']} \\\\")
     ruta.write_text("\n".join(filas) + "\n", encoding="utf-8")
 
 
 def tabla_pulsaciones(filas: list[tuple], ruta: Path):
-    lineas = [f"{n} & {d} & {cant} & {coma(p, 2)} & {coma(m, 2)} \\\\"
+    lineas = [f"{n} & {d} & {cant} & {coma(p, 3)} & {coma(m, 3)} \\\\"
               for n, d, cant, p, m in filas]
     ruta.write_text("\n".join(lineas) + "\n", encoding="utf-8")
 

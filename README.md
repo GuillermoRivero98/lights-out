@@ -14,7 +14,7 @@ suma, con intercambio de filas.
 | `lights_out.py` | Modelo, simulación del juego y la función `resolver_lights_out(tablero)` |
 | `test_lights_out.py` | Pruebas automáticas (sistema de la consigna, jugada sobre a43, tableros aleatorios) |
 | `experimentos.py` | Genera las tablas y figuras del informe en `informe/generado/` |
-| `informe/informe.tex` | Fuente LaTeX del informe |
+| `informe/informe.tex` | Fuente LaTeX del informe (la captura de Grid Lights está en `informe/imagenes/`) |
 
 ## Uso
 
