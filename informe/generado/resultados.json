@@ -1,0 +1,252 @@
+{
+  "semilla": 2026,
+  "tableros_por_n": 2000,
+  "solucion_letra_3x3": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    1
+  ],
+  "solucion_grid_lights": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "letra_5x5_tiene_solucion": false,
+  "letra_5x5_productos_con_nucleo": [
+    1,
+    0
+  ],
+  "base_nucleo_5x5": [
+    [
+      [
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      [
+        0,
+        1,
+        1,
+        1,
+        0
+      ]
+    ],
+    [
+      [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        1,
+        0,
+        1
+      ]
+    ]
+  ],
+  "por_tamano": [
+    {
+      "n": 1,
+      "incognitas": 1,
+      "rango": 1,
+      "dim_nucleo": 0,
+      "fraccion_teorica": 1.0,
+      "fraccion_empirica": 1.0,
+      "con_solucion": 2000,
+      "verificadas": 2000,
+      "paso_pivote_nulo": null,
+      "intercambios_de_filas": 0
+    },
+    {
+      "n": 2,
+      "incognitas": 4,
+      "rango": 4,
+      "dim_nucleo": 0,
+      "fraccion_teorica": 1.0,
+      "fraccion_empirica": 1.0,
+      "con_solucion": 2000,
+      "verificadas": 2000,
+      "paso_pivote_nulo": 2,
+      "intercambios_de_filas": 1
+    },
+    {
+      "n": 3,
+      "incognitas": 9,
+      "rango": 9,
+      "dim_nucleo": 0,
+      "fraccion_teorica": 1.0,
+      "fraccion_empirica": 1.0,
+      "con_solucion": 2000,
+      "verificadas": 2000,
+      "paso_pivote_nulo": 2,
+      "intercambios_de_filas": 3
+    },
+    {
+      "n": 4,
+      "incognitas": 16,
+      "rango": 12,
+      "dim_nucleo": 4,
+      "fraccion_teorica": 0.0625,
+      "fraccion_empirica": 0.0615,
+      "con_solucion": 123,
+      "verificadas": 123,
+      "paso_pivote_nulo": 2,
+      "intercambios_de_filas": 4
+    },
+    {
+      "n": 5,
+      "incognitas": 25,
+      "rango": 23,
+      "dim_nucleo": 2,
+      "fraccion_teorica": 0.25,
+      "fraccion_empirica": 0.2475,
+      "con_solucion": 495,
+      "verificadas": 495,
+      "paso_pivote_nulo": 2,
+      "intercambios_de_filas": 9
+    },
+    {
+      "n": 6,
+      "incognitas": 36,
+      "rango": 36,
+      "dim_nucleo": 0,
+      "fraccion_teorica": 1.0,
+      "fraccion_empirica": 1.0,
+      "con_solucion": 2000,
+      "verificadas": 2000,
+      "paso_pivote_nulo": 2,
+      "intercambios_de_filas": 14
+    },
+    {
+      "n": 7,
+      "incognitas": 49,
+      "rango": 49,
+      "dim_nucleo": 0,
+      "fraccion_teorica": 1.0,
+      "fraccion_empirica": 1.0,
+      "con_solucion": 2000,
+      "verificadas": 2000,
+      "paso_pivote_nulo": 2,
+      "intercambios_de_filas": 20
+    },
+    {
+      "n": 8,
+      "incognitas": 64,
+      "rango": 64,
+      "dim_nucleo": 0,
+      "fraccion_teorica": 1.0,
+      "fraccion_empirica": 1.0,
+      "con_solucion": 2000,
+      "verificadas": 2000,
+      "paso_pivote_nulo": 2,
+      "intercambios_de_filas": 26
+    },
+    {
+      "n": 9,
+      "incognitas": 81,
+      "rango": 73,
+      "dim_nucleo": 8,
+      "fraccion_teorica": 0.00390625,
+      "fraccion_empirica": 0.0035,
+      "con_solucion": 7,
+      "verificadas": 7,
+      "paso_pivote_nulo": 2,
+      "intercambios_de_filas": 30
+    },
+    {
+      "n": 10,
+      "incognitas": 100,
+      "rango": 100,
+      "dim_nucleo": 0,
+      "fraccion_teorica": 1.0,
+      "fraccion_empirica": 1.0,
+      "con_solucion": 2000,
+      "verificadas": 2000,
+      "paso_pivote_nulo": 2,
+      "intercambios_de_filas": 41
+    }
+  ],
+  "pulsaciones": [
+    {
+      "n": 4,
+      "dim_nucleo": 4,
+      "tableros": 200,
+      "promedio_particular": 6.195,
+      "promedio_minima": 4.225
+    },
+    {
+      "n": 5,
+      "dim_nucleo": 2,
+      "tableros": 200,
+      "promedio_particular": 11.225,
+      "promedio_minima": 9.915
+    },
+    {
+      "n": 9,
+      "dim_nucleo": 8,
+      "tableros": 200,
+      "promedio_particular": 36.64,
+      "promedio_minima": 27.79
+    }
+  ]
+}
