@@ -288,7 +288,7 @@ Como se eliminan los unos por encima y por debajo de cada pivote, al terminar ca
 
 \subsection{Implementación}\label{sec:implementacion}
 
-El método se implementó en Python~3 con las bibliotecas NumPy (Harris et al., 2020), para el manejo de matrices, y Matplotlib (Hunter, 2007), para las figuras. Las filas se representan como vectores de enteros sin signo de 8 bits, y la operación $F_i\to F_i+F_f$ se calcula con el operador \textit{o exclusivo} (XOR), que coincide con la suma de $\F$ y opera sobre todas las columnas a la vez. El código fuente, las pruebas y las instrucciones para reproducir todos los resultados de este informe se encuentran en el repositorio \url{\repositorio}. Los archivos principales son los siguientes:
+El método se implementó en Python~3 con las bibliotecas NumPy (Harris et al., 2020), para el manejo de matrices, y Matplotlib (Hunter, 2007), para las figuras. En el desarrollo y la redacción se utilizó un asistente de inteligencia artificial, según se detalla en la declaración al final del informe. Las filas se representan como vectores de enteros sin signo de 8 bits, y la operación $F_i\to F_i+F_f$ se calcula con el operador \textit{o exclusivo} (XOR), que coincide con la suma de $\F$ y opera sobre todas las columnas a la vez. El código fuente, las pruebas y las instrucciones para reproducir todos los resultados de este informe se encuentran en el repositorio \url{\repositorio}. Los archivos principales son los siguientes:
 \begin{itemize}[leftmargin=2em,itemsep=0pt]
   \item \codigo{lights\_out.py}: módulo con el modelo y la función pedida, \codigo{resolver\_lights\_out}, que recibe una matriz $n\times n$ de ceros y unos y devuelve el vector solución, o lanza la excepción \codigo{SinSolucionError} si el tablero no tiene solución. Incluye también una simulación del juego (\codigo{presionar}, \codigo{aplicar\_solucion}) que aplica las reglas directamente sobre el tablero, sin usar la matriz $A$.
   \item \codigo{test\_lights\_out.py}: pruebas automáticas que comparan el sistema construido con el de la consigna, verifican la jugada de ejemplo sobre $a_{43}$, comprueban las soluciones obtenidas y las comparan con una búsqueda exhaustiva.
@@ -462,6 +462,22 @@ En cuanto al cuarto objetivo, se concluye que todo tablero tiene solución únic
 Como líneas de trabajo futuro, se propone aprovechar la estructura dispersa de $A$ para resolver tableros de mayor tamaño, estudiar con mayor generalidad para qué valores de $n$ la matriz es invertible y extender el modelo a variantes del juego, como tableros rectangulares o luces con más de dos estados, en las que la suma se calcula módulo un número mayor.
 
 % ---------------------------------------------------------------------------
+\section*{Declaración de uso de inteligencia artificial}
+% ---------------------------------------------------------------------------
+\addcontentsline{toc}{section}{Declaración de uso de inteligencia artificial}
+
+En la elaboración de este trabajo se utilizó el asistente de inteligencia artificial Claude (Anthropic, 2026). La herramienta se usó en las siguientes tareas:
+\begin{itemize}[leftmargin=2em,itemsep=0pt]
+  \item análisis de la consigna, de la guía de informes y de la rúbrica de corrección;
+  \item desarrollo del modelo matemático y redacción de las demostraciones de las Proposiciones~\ref{prop:efecto} a~\ref{prop:orden};
+  \item implementación del código en Python (\codigo{lights\_out.py}, \codigo{test\_lights\_out.py} y \codigo{experimentos.py}) y generación de las tablas y figuras;
+  \item redacción del informe en \LaTeX{};
+  \item revisión del informe y del código contra la consigna y la rúbrica, incluida una verificación independiente de los resultados numéricos.
+\end{itemize}
+
+Los integrantes del grupo definieron el alcance del trabajo, aportaron los casos de prueba (incluida la captura de Grid Lights y la convención de colores para interpretarla), revisaron la coherencia de todo el documento y comprobaron a mano el desarrollo y los resultados. Los integrantes asumen la responsabilidad por el contenido final del informe.
+
+% ---------------------------------------------------------------------------
 \section*{Referencias}
 % ---------------------------------------------------------------------------
 \addcontentsline{toc}{section}{Referencias}
@@ -472,6 +488,8 @@ Como líneas de trabajo futuro, se propone aprovechar la estructura dispersa de 
 \setlength{\parskip}{0.5em}
 
 Anderson, M., y Feil, T. (1998). Turning lights out with linear algebra. \textit{Mathematics Magazine, 71}(4), 300--303. \url{https://doi.org/10.1080/0025570X.1998.11996658}
+
+Anthropic. (2026). \textit{Claude} (versión Opus 5.5) [Modelo de lenguaje de gran escala]. \url{https://claude.ai}
 
 Artbylogic. (s.f.). \textit{Grid Lights} [Juego en línea]. \url{https://artbylogic.com}
 
