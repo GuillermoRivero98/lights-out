@@ -24,7 +24,7 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage[spanish,ruled,linesnumbered,vlined]{algorithm2e}
-\usepackage[hidelinks]{hyperref}
+\usepackage[hidelinks,hypertexnames=false]{hyperref}
 \urlstyle{same}
 
 \onehalfspacing
@@ -45,6 +45,7 @@
 \captionsetup[table]{position=top,skip=6pt}
 \captionsetup[figure]{position=bottom,skip=6pt}
 
+\setlength{\headheight}{14.5pt}
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[R]{\thepage}
@@ -75,8 +76,10 @@
 \begin{titlepage}
 \thispagestyle{empty}
 \centering
-\vspace*{3cm}
-{\bfseries \titulo\par}
+\vspace*{0.5cm}
+\includegraphics[width=5.5cm]{imagenes/logo_ucu.png}\par
+\vspace{3cm}
+{\Large\bfseries \titulo\par}
 \vspace{2.5cm}
 Guillermo Rivero (C.I. 5048260-2)\par
 Enzo Barreto (C.I. 4523297-3)\par

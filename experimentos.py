@@ -173,11 +173,12 @@ def figura_matriz(n: int, ruta: Path):
     A = matriz_del_sistema(n)
     fig, ax = plt.subplots(figsize=(3.4, 3.4))
     ax.imshow(A, cmap=ListedColormap(["white", AZUL]), vmin=0, vmax=1)
-    ticks = np.arange(0, n * n, n)
+    # Marcas en la primera y la última incógnita de cada fila del tablero.
+    ticks = sorted({k for f in range(n) for k in (f * n, f * n + n - 1)})
     ax.set_xticks(ticks)
     ax.set_yticks(ticks)
-    ax.set_xticklabels(ticks + 1)
-    ax.set_yticklabels(ticks + 1)
+    ax.set_xticklabels([t + 1 for t in ticks], fontsize=8)
+    ax.set_yticklabels([t + 1 for t in ticks], fontsize=8)
     ax.set_xlabel(r"Incógnita $x_j$ (luz presionada)")
     ax.set_ylabel(r"Ecuación $i$ (luz afectada)")
     for lado in ax.spines.values():
